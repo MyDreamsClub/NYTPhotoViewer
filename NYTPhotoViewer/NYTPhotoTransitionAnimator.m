@@ -45,7 +45,7 @@ static const CGFloat NYTPhotoTransitionAnimatorSpringDamping = 0.9;
 - (void)setupTransitionContainerHierarchyWithTransitionContext:(id <UIViewControllerContextTransitioning>)transitionContext {
     UIView *fromView = [transitionContext viewForKey:UITransitionContextFromViewKey];
     UIView *toView = [transitionContext viewForKey:UITransitionContextToViewKey];
-
+    
     UIViewController *toViewController = [transitionContext viewControllerForKey:UITransitionContextToViewControllerKey];
     toView.frame = [transitionContext finalFrameForViewController:toViewController];
     
@@ -121,16 +121,16 @@ static const CGFloat NYTPhotoTransitionAnimatorSpringDamping = 0.9;
         endingViewForAnimation = [[self class] newAnimationViewFromView:self.endingView];
     }
     
-    CGAffineTransform finalEndingViewTransform = self.endingView.transform;
-
-    CGFloat endingViewInitialTransform = CGRectGetHeight(startingViewForAnimation.frame) / CGRectGetHeight(endingViewForAnimation.frame);
-    CGPoint translatedStartingViewCenter = [[self class] centerPointForView:self.startingView
-                                                  translatedToContainerView:containerView];
+    CGRect translatedStartingViewRect = [containerView convertRect:self.startingView.frame
+                                                          fromView:self.startingView.superview];
     
-    startingViewForAnimation.center = translatedStartingViewCenter;
+    startingViewForAnimation.frame = translatedStartingViewRect;
     
-    endingViewForAnimation.transform = CGAffineTransformScale(endingViewForAnimation.transform, endingViewInitialTransform, endingViewInitialTransform);
-    endingViewForAnimation.center = translatedStartingViewCenter;
+    endingViewForAnimation.contentMode = self.isDismissing ?
+        endingViewForAnimation.contentMode : startingViewForAnimation.contentMode;
+    endingViewForAnimation.clipsToBounds = self.isDismissing ?
+        endingViewForAnimation.contentMode : startingViewForAnimation.contentMode;
+    endingViewForAnimation.frame = translatedStartingViewRect;
     endingViewForAnimation.alpha = 0.0;
     
     [transitionContext.containerView addSubview:startingViewForAnimation];
@@ -154,15 +154,15 @@ static const CGFloat NYTPhotoTransitionAnimatorSpringDamping = 0.9;
                                                delay:0
                                              options:UIViewAnimationOptionAllowAnimatedContent | UIViewAnimationOptionBeginFromCurrentState
                                           animations:^{
-                              startingViewForAnimation.alpha = 0.0;
-                          } completion:^(BOOL finished) {
-                              [startingViewForAnimation removeFromSuperview];
-                          }];
+                                              startingViewForAnimation.alpha = 0.0;
+                                          } completion:^(BOOL finished) {
+                                              [startingViewForAnimation removeFromSuperview];
+                                          }];
                      }];
     
-    CGFloat startingViewFinalTransform = 1.0 / endingViewInitialTransform;
-    CGPoint translatedEndingViewFinalCenter = [[self class] centerPointForView:self.endingView
-                                                     translatedToContainerView:containerView];
+    CGRect translatedEndingViewFinalFrame = [containerView convertRect:self.endingView.frame
+                                                              fromView:self.endingView.superview];
+    translatedEndingViewFinalFrame.origin.y += ceil(translatedEndingViewFinalFrame.size.height - floor(translatedEndingViewFinalFrame.size.height));
     
     // Zoom animation
     [UIView animateWithDuration:[self transitionDuration:transitionContext]
@@ -171,16 +171,14 @@ static const CGFloat NYTPhotoTransitionAnimatorSpringDamping = 0.9;
           initialSpringVelocity:0.0
                         options:UIViewAnimationOptionAllowAnimatedContent | UIViewAnimationOptionBeginFromCurrentState
                      animations:^{
-                         endingViewForAnimation.transform = finalEndingViewTransform;
-                         endingViewForAnimation.center = translatedEndingViewFinalCenter;
-                         startingViewForAnimation.transform = CGAffineTransformScale(startingViewForAnimation.transform, startingViewFinalTransform, startingViewFinalTransform);
-                         startingViewForAnimation.center = translatedEndingViewFinalCenter;
+                         endingViewForAnimation.frame = translatedEndingViewFinalFrame;
+                         startingViewForAnimation.frame = translatedEndingViewFinalFrame;
                      }
                      completion:^(BOOL finished) {
                          [endingViewForAnimation removeFromSuperview];
                          self.endingView.alpha = 1.0;
                          self.startingView.alpha = 1.0;
-        
+                         
                          [self completeTransitionWithTransitionContext:transitionContext];
                      }];
 }
@@ -224,7 +222,7 @@ static const CGFloat NYTPhotoTransitionAnimatorSpringDamping = 0.9;
     if (!view) {
         return nil;
     }
-
+    
     UIView *animationView;
     if (view.layer.contents) {
         if ([view isKindOfClass:[UIImageView class]]) {
@@ -239,7 +237,7 @@ static const CGFloat NYTPhotoTransitionAnimatorSpringDamping = 0.9;
             animationView.layer.contents = view.layer.contents;
             animationView.layer.bounds = view.layer.bounds;
         }
-
+        
         animationView.layer.cornerRadius = view.layer.cornerRadius;
         animationView.layer.masksToBounds = view.layer.masksToBounds;
         animationView.contentMode = view.contentMode;
@@ -248,7 +246,7 @@ static const CGFloat NYTPhotoTransitionAnimatorSpringDamping = 0.9;
     else {
         animationView = [view snapshotViewAfterScreenUpdates:YES];
     }
-
+    
     return animationView;
 }
 
@@ -273,3 +271,4 @@ static const CGFloat NYTPhotoTransitionAnimatorSpringDamping = 0.9;
 }
 
 @end
+
