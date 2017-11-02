@@ -29,6 +29,12 @@ typedef NS_ENUM(NSUInteger, NYTViewControllerPhotoIndex) {
 
 @implementation NYTViewController
 
+-(void)viewDidLoad {
+    [super viewDidLoad];
+    
+    self.imageButton.imageView.contentMode = UIViewContentModeScaleAspectFill;
+}
+
 - (IBAction)imageButtonTapped:(id)sender {
     self.photos = [[self class] newTestPhotos];
     
@@ -113,7 +119,7 @@ typedef NS_ENUM(NSUInteger, NYTViewControllerPhotoIndex) {
         return nil;
     }
     
-    return self.imageButton;
+    return self.imageButton.imageView;
 }
 
 - (UIView *)photosViewController:(NYTPhotosViewController *)photosViewController loadingViewForPhoto:(id <NYTPhoto>)photo {
