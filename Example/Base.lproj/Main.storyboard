@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="13196" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" colorMatched="YES" initialViewController="vXZ-lx-hvc">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="13196" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" colorMatched="YES" initialViewController="UUT-FI-vOx">
     <device id="retina4_7" orientation="portrait">
         <adaptation id="fullscreen"/>
     </device>
@@ -37,7 +37,7 @@
                                 </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleAspectFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Fmf-Yx-Ywc" userLabel="ImageButton">
-                                <rect key="frame" x="38" y="108" width="65" height="101"/>
+                                <rect key="frame" x="41" y="30" width="65" height="101"/>
                                 <constraints>
                                     <constraint firstAttribute="width" constant="65" id="Pk9-kn-iyL"/>
                                     <constraint firstAttribute="height" constant="101" id="Za0-9W-PJG"/>
@@ -54,17 +54,36 @@
                         <constraints>
                             <constraint firstAttribute="centerY" secondItem="zGH-LE-XPk" secondAttribute="centerY" id="Gws-wi-Uf9"/>
                             <constraint firstAttribute="centerX" secondItem="zGH-LE-XPk" secondAttribute="centerX" id="gGk-yX-uv3"/>
-                            <constraint firstItem="Fmf-Yx-Ywc" firstAttribute="leading" secondItem="kh9-bI-dsS" secondAttribute="leadingMargin" constant="22" id="hOZ-xc-AGJ"/>
-                            <constraint firstItem="Fmf-Yx-Ywc" firstAttribute="top" secondItem="jyV-Pf-zRb" secondAttribute="bottom" constant="88" id="xfc-4p-Asa"/>
+                            <constraint firstItem="Fmf-Yx-Ywc" firstAttribute="leading" secondItem="kh9-bI-dsS" secondAttribute="leadingMargin" constant="25" id="hOZ-xc-AGJ"/>
+                            <constraint firstItem="Fmf-Yx-Ywc" firstAttribute="top" secondItem="jyV-Pf-zRb" secondAttribute="bottom" constant="-34" id="xfc-4p-Asa"/>
                         </constraints>
                     </view>
+                    <navigationItem key="navigationItem" id="EbC-5U-Ta4"/>
                     <connections>
                         <outlet property="imageButton" destination="Fmf-Yx-Ywc" id="glj-NX-P4V"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="x5A-6p-PRh" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="25.5" y="29.5"/>
+            <point key="canvasLocation" x="237.5" y="29.5"/>
+        </scene>
+        <!--Navigation Controller-->
+        <scene sceneID="DJ1-N7-3Hl">
+            <objects>
+                <navigationController automaticallyAdjustsScrollViewInsets="NO" id="UUT-FI-vOx" sceneMemberID="viewController">
+                    <toolbarItems/>
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" id="qOg-7u-Jcl">
+                        <rect key="frame" x="0.0" y="20" width="375" height="44"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                    </navigationBar>
+                    <nil name="viewControllers"/>
+                    <connections>
+                        <segue destination="vXZ-lx-hvc" kind="relationship" relationship="rootViewController" id="4ji-6m-lVy"/>
+                    </connections>
+                </navigationController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="1Rm-Fw-aFs" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="-273" y="30"/>
         </scene>
     </scenes>
     <resources>
