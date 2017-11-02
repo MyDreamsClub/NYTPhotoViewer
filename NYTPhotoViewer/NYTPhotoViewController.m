@@ -202,4 +202,8 @@ NSString * const NYTPhotoViewControllerPhotoImageUpdatedNotification = @"NYTPhot
     }
 }
 
+-(void)scrollViewDidZoom:(UIScrollView *)scrollView {
+    [self.scalingImageView centerScrollViewContents];
+}
+
 @end
