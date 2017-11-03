@@ -181,4 +181,8 @@ typedef NS_ENUM(NSUInteger, NYTViewControllerPhotoIndex) {
     NSLog(@"Did Dismiss Photo Viewer: %@", photosViewController);
 }
 
+-(NSArray<UIView *> *)photosViewController:(NYTPhotosViewController *)photosViewController arrayOfViewsWhichMayClipPhoto:(id<NYTPhoto>)photo {
+    return @[self.navigationController.navigationBar];
+}
+
 @end

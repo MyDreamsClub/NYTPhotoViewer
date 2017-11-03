@@ -36,6 +36,11 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, nullable) UIView *endingViewForAnimation;
 
 /**
+ *
+ */
+@property (nonatomic, nullable) NSArray <UIView *> *potentialClippers;
+
+/**
  *  Whether this transition is a dismissal. If `NO`, presentation is assumed.
  */
 @property (nonatomic, getter=isDismissing) BOOL dismissing;

@@ -8,8 +8,8 @@
 
 #import "NYTPhotoTransitionAnimator.h"
 
-static const CGFloat NYTPhotoTransitionAnimatorDurationWithZooming = 2.5;
-static const CGFloat NYTPhotoTransitionAnimatorDurationWithoutZooming = 2.3;
+static const CGFloat NYTPhotoTransitionAnimatorDurationWithZooming = 0.5;
+static const CGFloat NYTPhotoTransitionAnimatorDurationWithoutZooming = 0.3;
 static const CGFloat NYTPhotoTransitionAnimatorBackgroundFadeDurationRatio = 4.0 / 9.0;
 static const CGFloat NYTPhotoTransitionAnimatorEndingViewFadeInDurationRatio = 0.1;
 static const CGFloat NYTPhotoTransitionAnimatorStartingViewFadeOutDurationRatio = 0.05;
@@ -110,28 +110,44 @@ static const CGFloat NYTPhotoTransitionAnimatorSpringDamping = 0.9;
 - (void)performZoomingAnimationWithTransitionContext:(id <UIViewControllerContextTransitioning>)transitionContext {
     UIView *containerView = transitionContext.containerView;
     
-    // Create a brand new view with the same contents for the purposes of animating this new view and leaving the old one alone.
+    // starting view
     UIView *startingViewForAnimation = self.startingViewForAnimation;
     if (!startingViewForAnimation) {
         startingViewForAnimation = [[self class] newAnimationViewFromView:self.startingView];
     }
     
+    CGRect translatedStartingViewRect = [containerView convertRect:self.startingView.frame
+                                                          fromView:self.startingView.superview];
+    
+    CGRect startingVisibleRect = self.isDismissing ?
+    self.startingView.bounds : [self visibleRectOfView:self.startingView];
+    
+    UIView *startViewMask = [UIView new];
+    startViewMask.backgroundColor = [UIColor whiteColor];
+    startViewMask.frame = startingVisibleRect;
+    [startingViewForAnimation addSubview:startViewMask];
+    startingViewForAnimation.maskView = startViewMask;
+    
+    startingViewForAnimation.frame = translatedStartingViewRect;
+    
+    // ending view
     UIView *endingViewForAnimation = self.endingViewForAnimation;
     if (!endingViewForAnimation) {
         endingViewForAnimation = [[self class] newAnimationViewFromView:self.endingView];
     }
     
-    CGRect translatedStartingViewRect = [containerView convertRect:self.startingView.frame
-                                                          fromView:self.startingView.superview];
-    
-    startingViewForAnimation.frame = translatedStartingViewRect;
+    UIView *endViewMask = [UIView new];
+    endViewMask.backgroundColor = [UIColor whiteColor];
+    endViewMask.frame = startingVisibleRect;
+    [endingViewForAnimation addSubview:endViewMask];
+    endingViewForAnimation.maskView = endViewMask;
     
     endingViewForAnimation.contentMode = self.isDismissing ?
         endingViewForAnimation.contentMode : startingViewForAnimation.contentMode;
     endingViewForAnimation.clipsToBounds = self.isDismissing ?
         endingViewForAnimation.contentMode : startingViewForAnimation.contentMode;
     endingViewForAnimation.frame = translatedStartingViewRect;
-    endingViewForAnimation.alpha = 0.0;
+//    endingViewForAnimation.alpha = 0.0;
     
     [transitionContext.containerView addSubview:startingViewForAnimation];
     [transitionContext.containerView addSubview:endingViewForAnimation];
@@ -164,6 +180,9 @@ static const CGFloat NYTPhotoTransitionAnimatorSpringDamping = 0.9;
                                                               fromView:self.endingView.superview];
     translatedEndingViewFinalFrame.origin.y += ceil(translatedEndingViewFinalFrame.size.height - floor(translatedEndingViewFinalFrame.size.height));
     
+    CGRect endingVisibleRect = self.isDismissing ?
+        [self visibleRectOfView:self.endingView] : self.endingView.bounds;
+    
     // Zoom animation
     [UIView animateWithDuration:[self transitionDuration:transitionContext]
                           delay:0
@@ -173,13 +192,17 @@ static const CGFloat NYTPhotoTransitionAnimatorSpringDamping = 0.9;
                      animations:^{
                          endingViewForAnimation.frame = translatedEndingViewFinalFrame;
                          startingViewForAnimation.frame = translatedEndingViewFinalFrame;
+                         startViewMask.frame = endingVisibleRect;
+                         endViewMask.frame = endingVisibleRect;
                      }
                      completion:^(BOOL finished) {
-                         [endingViewForAnimation removeFromSuperview];
-                         self.endingView.alpha = 1.0;
-                         self.startingView.alpha = 1.0;
-                         
-                         [self completeTransitionWithTransitionContext:transitionContext];
+                         [UIView animateWithDuration:0.2 animations:^{
+                             self.endingView.alpha = 1.0;
+                             self.startingView.alpha = 1.0;
+                         } completion:^(BOOL finished) {
+                             [endingViewForAnimation removeFromSuperview];
+                             [self completeTransitionWithTransitionContext:transitionContext];
+                         }];
                      }];
 }
 
@@ -241,7 +264,7 @@ static const CGFloat NYTPhotoTransitionAnimatorSpringDamping = 0.9;
         animationView.layer.cornerRadius = view.layer.cornerRadius;
         animationView.layer.masksToBounds = view.layer.masksToBounds;
         animationView.contentMode = view.contentMode;
-        animationView.transform = view.transform;
+//        animationView.transform = view.transform;
     }
     else {
         animationView = [view snapshotViewAfterScreenUpdates:YES];
@@ -268,6 +291,35 @@ static const CGFloat NYTPhotoTransitionAnimatorSpringDamping = 0.9;
     if (self.shouldPerformZoomingAnimation) {
         [self performZoomingAnimationWithTransitionContext:transitionContext];
     }
+}
+
+#pragma mark - Helpers
+
+-(CGRect)visibleRectOfView:(UIView *)view {
+    UIWindow *window = view.window;
+    CGRect viewGlobalRect = [window convertRect:view.frame fromView:view.superview];
+    for (UIView *clipper in self.potentialClippers) {
+        CGRect clipperGlobalRect = [window convertRect:clipper.frame fromView:clipper.superview];
+        CGRect intersection = CGRectIntersection(viewGlobalRect, clipperGlobalRect);
+        if (!CGRectIsNull(intersection)) {
+            CGRect intersectionLocal = [view convertRect:intersection fromView:window];
+            BOOL clipTopSide = intersectionLocal.origin.y == 0.0;
+            if (clipTopSide) {
+                viewGlobalRect = CGRectMake(viewGlobalRect.origin.x,
+                                 viewGlobalRect.origin.y + intersectionLocal.size.height,
+                                 viewGlobalRect.size.width,
+                                 viewGlobalRect.size.height - intersectionLocal.size.height);
+            } else {
+                viewGlobalRect = CGRectMake(viewGlobalRect.origin.x,
+                                viewGlobalRect.origin.y,
+                                viewGlobalRect.size.width,
+                                viewGlobalRect.size.height - intersectionLocal.size.height);
+            }
+            
+        }
+    }
+    CGRect visibleRect = [view convertRect:viewGlobalRect fromView:window];
+    return visibleRect;
 }
 
 @end

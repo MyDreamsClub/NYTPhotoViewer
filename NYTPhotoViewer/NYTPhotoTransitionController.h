@@ -26,6 +26,11 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic) UIView *endingView;
 
 /**
+ *
+ */
+@property (nonatomic, nullable) NSArray <UIView *> *potentialClippers;
+
+/**
  *  Forces the dismiss to animate, instead of the default behavior of being interactive.
  */
 @property (nonatomic) BOOL forcesNonInteractiveDismissal;

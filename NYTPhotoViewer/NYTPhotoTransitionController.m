@@ -55,6 +55,14 @@
     self.animator.endingView = endingView;
 }
 
+-(void)setPotentialClippers:(NSArray<UIView *> *)potentialClippers {
+    self.animator.potentialClippers = potentialClippers;
+}
+
+-(NSArray<UIView *> *)potentialClippers {
+    return self.animator.potentialClippers;
+}
+
 #pragma mark - UIViewControllerTransitioningDelegate
 
 - (id <UIViewControllerAnimatedTransitioning>)animationControllerForPresentedController:(UIViewController *)presented presentingController:(UIViewController *)presenting sourceController:(UIViewController *)source {

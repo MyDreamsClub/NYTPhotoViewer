@@ -124,6 +124,9 @@ static const UIEdgeInsets NYTPhotosViewControllerCloseButtonImageInsets = {3, 0,
     }
     
     self.transitionController.endingView = endingView;
+    
+    self.transitionController.potentialClippers = [self.delegate photosViewController:self
+                                                        arrayOfViewsWhichMayClipPhoto:nil];
 }
 
 - (void)viewDidAppear:(BOOL)animated {
