@@ -70,11 +70,11 @@ typedef NS_ENUM(NSUInteger, NYTViewControllerPhotoIndex) {
             // no-op, left here for clarity:
             photo.image = nil;
         } else {
-            photo.image = [UIImage imageNamed:@"NYTimesBuilding"];
+            photo.image = [UIImage imageNamed:@"small"];
         }
         
         if (i == NYTViewControllerPhotoIndexCustomEverything) {
-            photo.placeholderImage = [UIImage imageNamed:@"NYTimesBuildingPlaceholder"];
+            photo.placeholderImage = [UIImage imageNamed:@"small"];
         }
 
         NSString *caption = @"summary";

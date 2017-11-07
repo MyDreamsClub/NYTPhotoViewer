@@ -37,12 +37,12 @@
                                 </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleAspectFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Fmf-Yx-Ywc" userLabel="ImageButton">
-                                <rect key="frame" x="30" y="48" width="65" height="101"/>
+                                <rect key="frame" x="76" y="131" width="65" height="101"/>
                                 <constraints>
                                     <constraint firstAttribute="width" constant="65" id="Pk9-kn-iyL"/>
                                     <constraint firstAttribute="height" constant="101" id="Za0-9W-PJG"/>
                                 </constraints>
-                                <state key="normal" title="Button" image="NYTimesBuilding">
+                                <state key="normal" title="Button" image="small">
                                     <color key="titleShadowColor" red="0.5" green="0.5" blue="0.5" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 </state>
                                 <connections>
@@ -54,8 +54,8 @@
                         <constraints>
                             <constraint firstAttribute="centerY" secondItem="zGH-LE-XPk" secondAttribute="centerY" id="Gws-wi-Uf9"/>
                             <constraint firstAttribute="centerX" secondItem="zGH-LE-XPk" secondAttribute="centerX" id="gGk-yX-uv3"/>
-                            <constraint firstItem="Fmf-Yx-Ywc" firstAttribute="leading" secondItem="kh9-bI-dsS" secondAttribute="leadingMargin" constant="14" id="hOZ-xc-AGJ"/>
-                            <constraint firstItem="Fmf-Yx-Ywc" firstAttribute="top" secondItem="jyV-Pf-zRb" secondAttribute="bottom" constant="-16" id="xfc-4p-Asa"/>
+                            <constraint firstItem="Fmf-Yx-Ywc" firstAttribute="leading" secondItem="kh9-bI-dsS" secondAttribute="leadingMargin" constant="60" id="hOZ-xc-AGJ"/>
+                            <constraint firstItem="Fmf-Yx-Ywc" firstAttribute="top" secondItem="jyV-Pf-zRb" secondAttribute="bottom" constant="67" id="xfc-4p-Asa"/>
                         </constraints>
                     </view>
                     <navigationItem key="navigationItem" id="EbC-5U-Ta4"/>
@@ -88,5 +88,6 @@
     </scenes>
     <resources>
         <image name="NYTimesBuilding" width="800" height="540"/>
+        <image name="small" width="200" height="135"/>
     </resources>
 </document>

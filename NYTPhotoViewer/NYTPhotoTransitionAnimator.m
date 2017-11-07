@@ -118,9 +118,10 @@ static const CGFloat NYTPhotoTransitionAnimatorSpringDamping = 0.9;
     
     CGRect translatedStartingViewRect = [containerView convertRect:self.startingView.frame
                                                           fromView:self.startingView.superview];
+    startingViewForAnimation.frame = translatedStartingViewRect;
     
     CGRect startingVisibleRect = self.isDismissing ?
-    self.startingView.bounds : [self visibleRectOfView:self.startingView];
+        startingViewForAnimation.bounds : [self visibleRectOfView:self.startingView];
     
     UIView *startViewMask = [UIView new];
     startViewMask.backgroundColor = [UIColor whiteColor];
@@ -128,27 +129,21 @@ static const CGFloat NYTPhotoTransitionAnimatorSpringDamping = 0.9;
     [startingViewForAnimation addSubview:startViewMask];
     startingViewForAnimation.maskView = startViewMask;
     
-    startingViewForAnimation.frame = translatedStartingViewRect;
-    
     // ending view
     UIView *endingViewForAnimation = self.endingViewForAnimation;
     if (!endingViewForAnimation) {
         endingViewForAnimation = [[self class] newAnimationViewFromView:self.endingView];
     }
+    endingViewForAnimation.contentMode = self.isDismissing ? endingViewForAnimation.contentMode : startingViewForAnimation.contentMode;
+    endingViewForAnimation.clipsToBounds = self.isDismissing ? endingViewForAnimation.contentMode : startingViewForAnimation.contentMode;
+    endingViewForAnimation.frame = translatedStartingViewRect;
     
     UIView *endViewMask = [UIView new];
     endViewMask.backgroundColor = [UIColor whiteColor];
     endViewMask.frame = startingVisibleRect;
     [endingViewForAnimation addSubview:endViewMask];
     endingViewForAnimation.maskView = endViewMask;
-    
-    endingViewForAnimation.contentMode = self.isDismissing ?
-        endingViewForAnimation.contentMode : startingViewForAnimation.contentMode;
-    endingViewForAnimation.clipsToBounds = self.isDismissing ?
-        endingViewForAnimation.contentMode : startingViewForAnimation.contentMode;
-    endingViewForAnimation.frame = translatedStartingViewRect;
-//    endingViewForAnimation.alpha = 0.0;
-    
+
     [transitionContext.containerView addSubview:startingViewForAnimation];
     [transitionContext.containerView addSubview:endingViewForAnimation];
     
@@ -180,8 +175,7 @@ static const CGFloat NYTPhotoTransitionAnimatorSpringDamping = 0.9;
                                                               fromView:self.endingView.superview];
     translatedEndingViewFinalFrame.origin.y += ceil(translatedEndingViewFinalFrame.size.height - floor(translatedEndingViewFinalFrame.size.height));
     
-    CGRect endingVisibleRect = self.isDismissing ?
-        [self visibleRectOfView:self.endingView] : self.endingView.bounds;
+    CGRect endingVisibleRect = self.isDismissing ? [self visibleRectOfView:self.endingView] : CGRectMake(0, 0, translatedEndingViewFinalFrame.size.width, translatedEndingViewFinalFrame.size.height);
     
     // Zoom animation
     [UIView animateWithDuration:[self transitionDuration:transitionContext]
