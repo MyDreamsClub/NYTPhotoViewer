@@ -173,7 +173,6 @@ static const CGFloat NYTPhotoTransitionAnimatorSpringDamping = 0.9;
     
     CGRect translatedEndingViewFinalFrame = [containerView convertRect:self.endingView.frame
                                                               fromView:self.endingView.superview];
-    translatedEndingViewFinalFrame.origin.y += ceil(translatedEndingViewFinalFrame.size.height - floor(translatedEndingViewFinalFrame.size.height));
     
     CGRect endingVisibleRect = self.isDismissing ? [self visibleRectOfView:self.endingView] : CGRectMake(0, 0, translatedEndingViewFinalFrame.size.width, translatedEndingViewFinalFrame.size.height);
     
@@ -297,18 +296,17 @@ static const CGFloat NYTPhotoTransitionAnimatorSpringDamping = 0.9;
         CGRect clipperGlobalRect = [window convertRect:clipper.frame fromView:clipper.superview];
         CGRect intersection = CGRectIntersection(viewGlobalRect, clipperGlobalRect);
         if (!CGRectIsNull(intersection)) {
-            CGRect intersectionLocal = [view convertRect:intersection fromView:window];
-            BOOL clipTopSide = intersectionLocal.origin.y < window.bounds.size.height / 2.0;
+            BOOL clipTopSide = intersection.origin.y < window.bounds.size.height / 2.0;
             if (clipTopSide) {
                 viewGlobalRect = CGRectMake(viewGlobalRect.origin.x,
-                                 CGRectGetMaxY(intersection),
-                                 viewGlobalRect.size.width,
-                                 CGRectGetMaxY(viewGlobalRect) - CGRectGetMaxY(intersection));
+                                            CGRectGetMaxY(intersection),
+                                            viewGlobalRect.size.width,
+                                            CGRectGetMaxY(viewGlobalRect) - CGRectGetMaxY(intersection));
             } else {
                 viewGlobalRect = CGRectMake(viewGlobalRect.origin.x,
-                                viewGlobalRect.origin.y,
-                                viewGlobalRect.size.width,
-                                CGRectGetMinY(intersection) - viewGlobalRect.origin.y);
+                                            viewGlobalRect.origin.y,
+                                            viewGlobalRect.size.width,
+                                            CGRectGetMinY(intersection) - viewGlobalRect.origin.y);
             }
             
         }
