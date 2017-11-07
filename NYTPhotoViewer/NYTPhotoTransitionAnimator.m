@@ -291,23 +291,24 @@ static const CGFloat NYTPhotoTransitionAnimatorSpringDamping = 0.9;
 
 -(CGRect)visibleRectOfView:(UIView *)view {
     UIWindow *window = view.window;
+    
     CGRect viewGlobalRect = [window convertRect:view.frame fromView:view.superview];
     for (UIView *clipper in self.potentialClippers) {
         CGRect clipperGlobalRect = [window convertRect:clipper.frame fromView:clipper.superview];
         CGRect intersection = CGRectIntersection(viewGlobalRect, clipperGlobalRect);
         if (!CGRectIsNull(intersection)) {
             CGRect intersectionLocal = [view convertRect:intersection fromView:window];
-            BOOL clipTopSide = intersectionLocal.origin.y == 0.0;
+            BOOL clipTopSide = intersectionLocal.origin.y < window.bounds.size.height / 2.0;
             if (clipTopSide) {
                 viewGlobalRect = CGRectMake(viewGlobalRect.origin.x,
-                                 viewGlobalRect.origin.y + intersectionLocal.size.height,
+                                 CGRectGetMaxY(intersection),
                                  viewGlobalRect.size.width,
-                                 viewGlobalRect.size.height - intersectionLocal.size.height);
+                                 CGRectGetMaxY(viewGlobalRect) - CGRectGetMaxY(intersection));
             } else {
                 viewGlobalRect = CGRectMake(viewGlobalRect.origin.x,
                                 viewGlobalRect.origin.y,
                                 viewGlobalRect.size.width,
-                                viewGlobalRect.size.height - intersectionLocal.size.height);
+                                CGRectGetMinY(intersection) - viewGlobalRect.origin.y);
             }
             
         }
