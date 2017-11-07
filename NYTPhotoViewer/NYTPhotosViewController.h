@@ -251,7 +251,7 @@ extern NSString * const NYTPhotosViewControllerDidDismissNotification;
  */
 - (void)photosViewController:(NYTPhotosViewController *)photosViewController actionCompletedWithActivityType:(NSString * _Nullable)activityType;
 
-- (NSArray<UIView *> *) photosViewController:(NYTPhotosViewController *)photosViewController arrayOfViewsWhichMayClipPhoto:(id <NYTPhoto>)photo;
+- (NSArray<UIView *> *) photosViewController:(NYTPhotosViewController *)photosViewController arrayOfViewsWhichMayClipPhoto:(id <NYTPhoto> _Nullable)photo;
 
 @end
 
