@@ -163,6 +163,10 @@ static const UIEdgeInsets NYTPhotosViewControllerCloseButtonImageInsets = {3, 0,
     [self dismissViewControllerAnimated:animated userInitiated:NO completion:completion];
 }
 
+-(void)dismiss {
+    [self dismissViewControllerAnimated:YES userInitiated:YES completion:nil];
+}
+
 #pragma mark - NYTPhotosViewController
 
 - (instancetype)initWithPhotos:(NSArray *)photos {
