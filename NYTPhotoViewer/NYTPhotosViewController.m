@@ -27,7 +27,6 @@ NSString * const NYTPhotosViewControllerDidDismissNotification = @"NYTPhotosView
 
 static const CGFloat NYTPhotosViewControllerOverlayAnimationDuration = 0.2;
 static const CGFloat NYTPhotosViewControllerInterPhotoSpacing = 16.0;
-static const UIEdgeInsets NYTPhotosViewControllerCloseButtonImageInsets = {3, 0, -3, 0};
 
 @interface NYTPhotosViewController () <UIPageViewControllerDataSource, UIPageViewControllerDelegate, NYTPhotoViewControllerDelegate>
 
@@ -189,6 +188,11 @@ static const UIEdgeInsets NYTPhotosViewControllerCloseButtonImageInsets = {3, 0,
 
 - (void)commonInitWithPhotos:(NSArray *)photos initialPhoto:(id <NYTPhoto>)initialPhoto delegate:(id<NYTPhotosViewControllerDelegate>)delegate {
     _dataSource = [[NYTPhotosDataSource alloc] initWithPhotos:photos];
+    
+    __weak __typeof(self)weakSelf = self;
+    _dataSource.photoChangeHandler = ^(id<NYTPhoto> photo) {
+        [weakSelf updateImageForPhoto:photo];
+    };
     _delegate = delegate;
 
     _panGestureRecognizer = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(didPanWithGestureRecognizer:)];

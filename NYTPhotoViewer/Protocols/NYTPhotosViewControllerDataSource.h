@@ -20,6 +20,8 @@
  */
 @property (nonatomic, readonly) NSUInteger numberOfPhotos;
 
+@property (nonatomic, copy) void (^photoChangeHandler)(id <NYTPhoto> photo);
+
 /**
  *  Returns the photo object at a specified index, or `nil` if one does not exist at that index.
  *

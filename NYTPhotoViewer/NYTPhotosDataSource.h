@@ -17,6 +17,8 @@ NS_ASSUME_NONNULL_BEGIN
  */
 @interface NYTPhotosDataSource : NSObject <NYTPhotosViewControllerDataSource>
 
+@property (nonatomic, copy) void (^photoChangeHandler)(id <NYTPhoto> photo);
+
 /**
  *  The designated initializer that takes and stores an array of photos.
  *

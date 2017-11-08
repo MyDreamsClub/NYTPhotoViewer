@@ -7,6 +7,7 @@
 //
 
 #import "NYTPhotosDataSource.h"
+#import "NYTPhoto.h"
 
 @interface NYTPhotosDataSource ()
 
@@ -17,6 +18,10 @@
 @implementation NYTPhotosDataSource
 
 #pragma mark - NSObject
+
+-(void)dealloc {
+    [self stopObservingPhotos];
+}
 
 - (instancetype)init {
     return [self initWithPhotos:nil];
@@ -29,6 +34,7 @@
     
     if (self) {
         _photos = photos;
+        [self startObservingPhotos];
     }
     
     return self;
@@ -64,6 +70,31 @@
 
 - (id <NYTPhoto>)objectAtIndexedSubscript:(NSUInteger)photoIndex {
     return [self photoAtIndex:photoIndex];
+}
+
+#pragma mark Observing
+
+-(void)startObservingPhotos {
+    for (id <NYTPhoto> photo in _photos) {
+        NSObject<NYTPhoto> *photoObject = (NSObject<NYTPhoto> *)photo;
+        [photoObject addObserver:self forKeyPath:@"image" options:NSKeyValueObservingOptionNew context:nil];
+    }
+}
+
+-(void)stopObservingPhotos {
+    for (id <NYTPhoto> photo in _photos) {
+        NSObject<NYTPhoto> *photoObject = (NSObject<NYTPhoto> *)photo;
+        [photoObject removeObserver:self forKeyPath:@"image"];
+    }
+}
+
+-(void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary<NSKeyValueChangeKey,id> *)change context:(void *)context {
+    if ([object conformsToProtocol:@protocol(NYTPhoto)]) {
+        id <NYTPhoto> photo = (id <NYTPhoto>)object;
+        if (self.photoChangeHandler) {
+            self.photoChangeHandler(photo);
+        }
+    }
 }
 
 @end
