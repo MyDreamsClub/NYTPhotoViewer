@@ -11,8 +11,7 @@
 
 @interface NYTPhotosOverlayView ()
 
-@property (nonatomic) UINavigationItem *navigationItem;
-@property (nonatomic) UINavigationBar *navigationBar;
+@property (nonatomic) UIView *topBar;
 
 @end
 
@@ -24,7 +23,7 @@
     self = [super initWithFrame:frame];
     
     if (self) {
-        [self setupNavigationBar];
+        [self setupTopBar];
     }
     
     return self;
@@ -45,8 +44,8 @@
     // The navigation bar has a different intrinsic content size upon rotation, so we must update to that new size.
     // Do it without animation to more closely match the behavior in `UINavigationController`
     [UIView performWithoutAnimation:^{
-        [self.navigationBar invalidateIntrinsicContentSize];
-        [self.navigationBar layoutIfNeeded];
+        [self.topBar invalidateIntrinsicContentSize];
+        [self.topBar layoutIfNeeded];
     }];
     
     [super layoutSubviews];
@@ -54,30 +53,38 @@
     if ([self.captionView conformsToProtocol:@protocol(NYTPhotoCaptionViewLayoutWidthHinting)]) {
         [(id<NYTPhotoCaptionViewLayoutWidthHinting>) self.captionView setPreferredMaxLayoutWidth:self.bounds.size.width];
     }
+    
+    if (_leftItemView) {
+        _leftItemView.frame = CGRectMake(_leftItemInsets.left,
+                                         _leftItemInsets.top,
+                                         _leftItemView.bounds.size.width,
+                                         _leftItemView.bounds.size.height);
+    }
+    if (_rightItemView) {
+        _rightItemView.frame = CGRectMake(self.bounds.size.width - _rightItemView.bounds.size.width - _rightItemInsets.right,
+                                         _rightItemInsets.top,
+                                         _rightItemView.bounds.size.width,
+                                         _rightItemView.bounds.size.height);
+    }
 }
 
 #pragma mark - NYTPhotosOverlayView
 
-- (void)setupNavigationBar {
-    self.navigationBar = [[UINavigationBar alloc] init];
-    self.navigationBar.translatesAutoresizingMaskIntoConstraints = NO;
+- (void)setupTopBar {
+    self.leftItemInsets = UIEdgeInsetsMake(32, 8, 0, 0);
+    self.rightItemInsets = UIEdgeInsetsMake(32, 0, 0, 8);
     
-    // Make navigation bar background fully transparent.
-    self.navigationBar.backgroundColor = [UIColor clearColor];
-    self.navigationBar.barTintColor = nil;
-    self.navigationBar.translucent = YES;
-    self.navigationBar.shadowImage = [[UIImage alloc] init];
-    [self.navigationBar setBackgroundImage:[[UIImage alloc] init] forBarMetrics:UIBarMetricsDefault];
+    self.topBar = [[UIView alloc] init];
+    self.topBar.backgroundColor = [UIColor colorWithWhite:0.0 alpha:0.65];
+    self.topBar.translatesAutoresizingMaskIntoConstraints = NO;
+    [self addSubview:self.topBar];
     
-    self.navigationItem = [[UINavigationItem alloc] initWithTitle:@""];
-    self.navigationBar.items = @[self.navigationItem];
-    
-    [self addSubview:self.navigationBar];
-    
-    NSLayoutConstraint *topConstraint = [NSLayoutConstraint constraintWithItem:self.navigationBar attribute:NSLayoutAttributeTop relatedBy:NSLayoutRelationEqual toItem:self attribute:NSLayoutAttributeTop multiplier:1.0 constant:0.0];
-    NSLayoutConstraint *widthConstraint = [NSLayoutConstraint constraintWithItem:self.navigationBar attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationEqual toItem:self attribute:NSLayoutAttributeWidth multiplier:1.0 constant:0.0];
-    NSLayoutConstraint *horizontalPositionConstraint = [NSLayoutConstraint constraintWithItem:self.navigationBar attribute:NSLayoutAttributeCenterX relatedBy:NSLayoutRelationEqual toItem:self attribute:NSLayoutAttributeCenterX multiplier:1.0 constant:0.0];
+    NSLayoutConstraint *topConstraint = [NSLayoutConstraint constraintWithItem:self.topBar attribute:NSLayoutAttributeTop relatedBy:NSLayoutRelationEqual toItem:self attribute:NSLayoutAttributeTop multiplier:1.0 constant:0.0];
+    NSLayoutConstraint *widthConstraint = [NSLayoutConstraint constraintWithItem:self.topBar attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationEqual toItem:self attribute:NSLayoutAttributeWidth multiplier:1.0 constant:0.0];
+    NSLayoutConstraint *heightConstraint = [NSLayoutConstraint constraintWithItem:self.topBar attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:1.0 constant:64.0];
+    NSLayoutConstraint *horizontalPositionConstraint = [NSLayoutConstraint constraintWithItem:self.topBar attribute:NSLayoutAttributeCenterX relatedBy:NSLayoutRelationEqual toItem:self attribute:NSLayoutAttributeCenterX multiplier:1.0 constant:0.0];
     [self addConstraints:@[topConstraint, widthConstraint, horizontalPositionConstraint]];
+    [self.topBar addConstraint:heightConstraint];
 }
 
 - (void)setCaptionView:(UIView *)captionView {
@@ -98,52 +105,28 @@
     [self addConstraints:@[bottomConstraint, widthConstraint, horizontalPositionConstraint]];
 }
 
-- (UIBarButtonItem *)leftBarButtonItem {
-    return self.navigationItem.leftBarButtonItem;
+-(void)setLeftItemView:(UIView *)leftItemView {
+    [_leftItemView removeFromSuperview];
+    _leftItemView = leftItemView;
+    [self.topBar addSubview:leftItemView];
+    [self setNeedsLayout];
 }
 
-- (void)setLeftBarButtonItem:(UIBarButtonItem *)leftBarButtonItem {
-    [self.navigationItem setLeftBarButtonItem:leftBarButtonItem animated:NO];
+-(void)setLeftItemInsets:(UIEdgeInsets)leftItemInsets {
+    _leftItemInsets = leftItemInsets;
+    [self setNeedsLayout];
 }
 
-- (NSArray *)leftBarButtonItems {
-    return self.navigationItem.leftBarButtonItems;
+-(void)setRightItemView:(UIView *)rightItemView {
+    [_rightItemView removeFromSuperview];
+    _rightItemView = rightItemView;
+    [self.topBar addSubview:rightItemView];
+    [self setNeedsLayout];
 }
 
-- (void)setLeftBarButtonItems:(NSArray *)leftBarButtonItems {
-    [self.navigationItem setLeftBarButtonItems:leftBarButtonItems animated:NO];
-}
-
-- (UIBarButtonItem *)rightBarButtonItem {
-    return self.navigationItem.rightBarButtonItem;
-}
-
-- (void)setRightBarButtonItem:(UIBarButtonItem *)rightBarButtonItem {
-    [self.navigationItem setRightBarButtonItem:rightBarButtonItem animated:NO];
-}
-
-- (NSArray *)rightBarButtonItems {
-    return self.navigationItem.rightBarButtonItems;
-}
-
-- (void)setRightBarButtonItems:(NSArray *)rightBarButtonItems {
-    [self.navigationItem setRightBarButtonItems:rightBarButtonItems animated:NO];
-}
-
-- (NSString *)title {
-    return self.navigationItem.title;
-}
-
-- (void)setTitle:(NSString *)title {
-    self.navigationItem.title = title;
-}
-
-- (NSDictionary *)titleTextAttributes {
-    return self.navigationBar.titleTextAttributes;
-}
-
-- (void)setTitleTextAttributes:(NSDictionary *)titleTextAttributes {
-    self.navigationBar.titleTextAttributes = titleTextAttributes;
+-(void)setRightItemInsets:(UIEdgeInsets)rightItemInsets {
+    _rightItemInsets = rightItemInsets;
+    [self setNeedsLayout];
 }
 
 @end

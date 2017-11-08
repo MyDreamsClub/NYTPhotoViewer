@@ -196,9 +196,10 @@ static const UIEdgeInsets NYTPhotosViewControllerCloseButtonImageInsets = {3, 0,
     self.modalPresentationCapturesStatusBarAppearance = YES;
 
     _overlayView = [[NYTPhotosOverlayView alloc] initWithFrame:CGRectZero];
-    _overlayView.leftBarButtonItem = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"NYTPhotoViewerCloseButtonX" inBundle:[NSBundle nyt_photoViewerResourceBundle] compatibleWithTraitCollection:nil] landscapeImagePhone:[UIImage imageNamed:@"NYTPhotoViewerCloseButtonXLandscape" inBundle:[NSBundle nyt_photoViewerResourceBundle] compatibleWithTraitCollection:nil] style:UIBarButtonItemStylePlain target:self action:@selector(doneButtonTapped:)];
-    _overlayView.leftBarButtonItem.imageInsets = NYTPhotosViewControllerCloseButtonImageInsets;
-    _overlayView.rightBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAction target:self action:@selector(actionButtonTapped:)];
+    UIButton *closeButton = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, 30, 30)];
+    [closeButton setImage:[UIImage imageNamed:@"NYTPhotoViewerCloseButtonX" inBundle:[NSBundle nyt_photoViewerResourceBundle] compatibleWithTraitCollection:nil] forState:UIControlStateNormal];
+    [closeButton addTarget:self action:@selector(doneButtonTapped:) forControlEvents:UIControlEventTouchUpInside];
+    _overlayView.leftItemView = closeButton;
 
     _notificationCenter = [[NSNotificationCenter alloc] init];
 
@@ -300,41 +301,37 @@ static const UIEdgeInsets NYTPhotosViewControllerCloseButtonImageInsets = {3, 0,
         [self presentViewController:controller animated:animated completion:nil];
     }
     else {
-        controller.popoverPresentationController.barButtonItem = self.rightBarButtonItem;
+//        controller.popoverPresentationController.barButtonItem = self.rightBarButtonItem;
         [self presentViewController:controller animated:animated completion:nil];
     }
 }
 
-- (UIBarButtonItem *)leftBarButtonItem {
-    return self.overlayView.leftBarButtonItem;
+-(void)setLeftItemView:(UIView *)leftItemView {
+    self.overlayView.leftItemView = leftItemView;
+}
+-(UIView *)leftItemView {
+    return self.overlayView.leftItemView;
 }
 
-- (void)setLeftBarButtonItem:(UIBarButtonItem *)leftBarButtonItem {
-    self.overlayView.leftBarButtonItem = leftBarButtonItem;
+-(void)setLeftItemInsets:(UIEdgeInsets)leftItemInsets {
+    self.overlayView.leftItemInsets = leftItemInsets;
+}
+-(UIEdgeInsets)leftItemInsets {
+    return self.overlayView.leftItemInsets;
 }
 
-- (NSArray *)leftBarButtonItems {
-    return self.overlayView.leftBarButtonItems;
+-(void)setRightItemView:(UIView *)rightItemView {
+    self.overlayView.rightItemView = rightItemView;
+}
+-(UIView *)rightItemView {
+    return self.overlayView.rightItemView;
 }
 
-- (void)setLeftBarButtonItems:(NSArray *)leftBarButtonItems {
-    self.overlayView.leftBarButtonItems = leftBarButtonItems;
+-(void)setRightItemInsets:(UIEdgeInsets)rightItemInsets {
+    self.overlayView.rightItemInsets = rightItemInsets;
 }
-
-- (UIBarButtonItem *)rightBarButtonItem {
-    return self.overlayView.rightBarButtonItem;
-}
-
-- (void)setRightBarButtonItem:(UIBarButtonItem *)rightBarButtonItem {
-    self.overlayView.rightBarButtonItem = rightBarButtonItem;
-}
-
-- (NSArray *)rightBarButtonItems {
-    return self.overlayView.rightBarButtonItems;
-}
-
-- (void)setRightBarButtonItems:(NSArray *)rightBarButtonItems {
-    self.overlayView.rightBarButtonItems = rightBarButtonItems;
+-(UIEdgeInsets)rightItemInsets {
+    return self.overlayView.rightItemInsets;
 }
 
 - (void)displayPhoto:(id <NYTPhoto>)photo animated:(BOOL)animated {

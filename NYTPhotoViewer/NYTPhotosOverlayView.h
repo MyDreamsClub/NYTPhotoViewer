@@ -18,7 +18,7 @@ NS_ASSUME_NONNULL_BEGIN
 /**
  *  The internal navigation bar used to set the bar button items and title of the overlay.
  */
-@property (nonatomic, readonly) UINavigationBar *navigationBar;
+@property (nonatomic, readonly) UIView *topBar;
 
 /**
  *  The title of the overlay. Centered between the left and right bar button items.
@@ -30,25 +30,11 @@ NS_ASSUME_NONNULL_BEGIN
  */
 @property(nonatomic, copy, nullable) NSDictionary <NSString *, id> *titleTextAttributes;
 
-/**
- *  The bar button item appearing at the top left of the overlay.
- */
-@property (nonatomic, nullable) UIBarButtonItem *leftBarButtonItem;
+@property(nonatomic, copy, nullable) UIView *leftItemView;
+@property(nonatomic, assign) UIEdgeInsets leftItemInsets;
 
-/**
- *  The bar button items appearing at the top left of the overlay.
- */
-@property (nonatomic, copy, nullable) NSArray <UIBarButtonItem *> *leftBarButtonItems;
-
-/**
- *  The bar button item appearing at the top right of the overlay.
- */
-@property (nonatomic, nullable) UIBarButtonItem *rightBarButtonItem;
-
-/**
- *  The bar button items appearing at the top right of the overlay.
- */
-@property (nonatomic, copy, nullable) NSArray <UIBarButtonItem *> *rightBarButtonItems;
+@property(nonatomic, copy, nullable) UIView *rightItemView;
+@property(nonatomic, assign) UIEdgeInsets rightItemInsets;
 
 /**
  *  A view representing the caption for the photo, which will be set to full width and locked to the bottom. Can be any `UIView` object, but is expected to respond to `intrinsicContentSize` appropriately to calculate height.
