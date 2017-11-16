@@ -566,7 +566,7 @@ static const CGFloat NYTPhotosViewControllerInterPhotoSpacing = 16.0;
     NSInteger index = 0;
     CGFloat minY = 0.0;
     CGFloat maxY = visibleRect.origin.y + visibleRect.size.height;
-    while (!done) {
+    while (index < clippers.count && !done) {
         UIView *firstView = [clippers objectAtIndex:index];
         UIView *secondView = [clippers objectAtIndex:clippers.count - 1 - index];
         if (firstView == secondView) {
@@ -582,6 +582,7 @@ static const CGFloat NYTPhotosViewControllerInterPhotoSpacing = 16.0;
         } else {
             done = YES;
         }
+        index += 1;
     }
     
     return CGRectMake(visibleRect.origin.x,
