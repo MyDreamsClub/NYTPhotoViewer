@@ -115,6 +115,11 @@ static const CGFloat NYTPhotosViewControllerInterPhotoSpacing = 16.0;
     
     [self addOverlayView];
     
+    NSArray *potentialClippers = nil;
+    if (self.delegate && [self.delegate respondsToSelector:@selector(photosViewController:arrayOfViewsWhichMayClipPhoto:)]) {
+        potentialClippers = [self.delegate photosViewController:self arrayOfViewsWhichMayClipPhoto:nil];
+    }
+    self.transitionController.potentialClippers = potentialClippers;
     self.transitionController.startingView = self.referenceViewForCurrentPhoto;
     
     UIView *endingView;
@@ -123,12 +128,6 @@ static const CGFloat NYTPhotosViewControllerInterPhotoSpacing = 16.0;
     }
     
     self.transitionController.endingView = endingView;
-    
-    NSArray *potentialClippers = nil;
-    if (self.delegate && [self.delegate respondsToSelector:@selector(photosViewController:arrayOfViewsWhichMayClipPhoto:)]) {
-        potentialClippers = [self.delegate photosViewController:self arrayOfViewsWhichMayClipPhoto:nil];
-    }
-    self.transitionController.potentialClippers = potentialClippers;
 }
 
 - (void)viewDidAppear:(BOOL)animated {
@@ -495,7 +494,11 @@ static const CGFloat NYTPhotosViewControllerInterPhotoSpacing = 16.0;
 
 - (UIView *)referenceViewForCurrentPhoto {
     if ([self.delegate respondsToSelector:@selector(photosViewController:referenceViewForPhoto:)]) {
-        return [self.delegate photosViewController:self referenceViewForPhoto:self.currentlyDisplayedPhoto];
+        UIView *referenceView = [self.delegate photosViewController:self referenceViewForPhoto:self.currentlyDisplayedPhoto];
+        CGRect globalVisibleRect = [self globalVisibleRect];
+        CGRect referenceViewGlobalRect = [self.view.window convertRect:referenceView.frame fromView:referenceView.superview];
+        CGRect intersection = CGRectIntersection(globalVisibleRect, referenceViewGlobalRect);
+        return CGRectIsNull(intersection) ? nil : referenceView;
     }
     
     return nil;
@@ -547,6 +550,44 @@ static const CGFloat NYTPhotosViewControllerInterPhotoSpacing = 16.0;
         UIViewController <NYTPhotoContainer> *photoViewController = pageViewController.viewControllers.firstObject;
         [self didNavigateToPhoto:photoViewController.photo];
     }
+}
+
+#pragma mark - Helpers
+
+-(CGRect)globalVisibleRect {
+    UIWindow *window = self.view.window;
+    NSArray <UIView *> *clippers = self.transitionController.potentialClippers;
+    CGRect visibleRect = window.bounds;
+    if (clippers == nil || clippers.count == 0) {
+        return visibleRect;
+    }
+    
+    BOOL done = NO;
+    NSInteger index = 0;
+    CGFloat minY = 0.0;
+    CGFloat maxY = visibleRect.origin.y + visibleRect.size.height;
+    while (!done) {
+        UIView *firstView = [clippers objectAtIndex:index];
+        UIView *secondView = [clippers objectAtIndex:clippers.count - 1 - index];
+        if (firstView == secondView) {
+            done = YES;
+        }
+        CGRect firstViewGlobalRect = [window convertRect:firstView.frame fromView:firstView.superview];
+        CGRect secondViewGlobalRect = [window convertRect:secondView.frame fromView:secondView.superview];
+        CGFloat newMinY = MAX(minY, CGRectGetMaxY(firstViewGlobalRect));
+        CGFloat newMaxY = MIN(maxY, CGRectGetMinY(secondViewGlobalRect));
+        if (newMaxY > newMinY) {
+            minY = newMinY;
+            maxY = newMaxY;
+        } else {
+            done = YES;
+        }
+    }
+    
+    return CGRectMake(visibleRect.origin.x,
+                      minY,
+                      visibleRect.size.width,
+                      maxY - minY);
 }
 
 @end
