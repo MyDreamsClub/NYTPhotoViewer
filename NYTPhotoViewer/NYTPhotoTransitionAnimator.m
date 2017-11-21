@@ -121,7 +121,7 @@ static const CGFloat NYTPhotoTransitionAnimatorSpringDamping = 0.9;
     startingViewForAnimation.frame = translatedStartingViewRect;
     
     CGRect startingVisibleRect = self.isDismissing ?
-        startingViewForAnimation.bounds : [self visibleRectOfView:self.startingView];
+    startingViewForAnimation.bounds : [self visibleRectOfView:self.startingView];
     
     UIView *startViewMask = [UIView new];
     startViewMask.backgroundColor = [UIColor whiteColor];
@@ -130,12 +130,9 @@ static const CGFloat NYTPhotoTransitionAnimatorSpringDamping = 0.9;
     startingViewForAnimation.maskView = startViewMask;
     
     // ending view
-    UIView *endingViewForAnimation = self.endingViewForAnimation;
-    if (!endingViewForAnimation) {
-        endingViewForAnimation = [[self class] newAnimationViewFromView:self.endingView];
-    }
-    endingViewForAnimation.contentMode = self.isDismissing ? endingViewForAnimation.contentMode : startingViewForAnimation.contentMode;
-    endingViewForAnimation.clipsToBounds = self.isDismissing ? endingViewForAnimation.contentMode : startingViewForAnimation.contentMode;
+    UIView *endingViewForAnimation = [[self class] newAnimationViewFromView:self.isDismissing ? self.startingView : self.endingView];
+    endingViewForAnimation.contentMode = self.isDismissing ? self.endingView.contentMode : startingViewForAnimation.contentMode;
+    endingViewForAnimation.clipsToBounds = self.isDismissing ? endingViewForAnimation.clipsToBounds : startingViewForAnimation.clipsToBounds;
     endingViewForAnimation.frame = translatedStartingViewRect;
     
     UIView *endViewMask = [UIView new];
@@ -143,7 +140,7 @@ static const CGFloat NYTPhotoTransitionAnimatorSpringDamping = 0.9;
     endViewMask.frame = startingVisibleRect;
     [endingViewForAnimation addSubview:endViewMask];
     endingViewForAnimation.maskView = endViewMask;
-
+    
     [transitionContext.containerView addSubview:startingViewForAnimation];
     [transitionContext.containerView addSubview:endingViewForAnimation];
     
@@ -257,7 +254,7 @@ static const CGFloat NYTPhotoTransitionAnimatorSpringDamping = 0.9;
         animationView.layer.cornerRadius = view.layer.cornerRadius;
         animationView.layer.masksToBounds = view.layer.masksToBounds;
         animationView.contentMode = view.contentMode;
-//        animationView.transform = view.transform;
+        //        animationView.transform = view.transform;
     }
     else {
         animationView = [view snapshotViewAfterScreenUpdates:YES];
