@@ -34,6 +34,7 @@ static const CGFloat NYTPhotoDismissalInteractionControllerReturnToCenterVelocit
     
     CGFloat backgroundAlpha = [self backgroundAlphaForPanningWithVerticalDelta:verticalDelta];
     fromView.backgroundColor = [fromView.backgroundColor colorWithAlphaComponent:backgroundAlpha];
+    viewToPan.alpha = backgroundAlpha;
     
     if (panGestureRecognizer.state == UIGestureRecognizerStateEnded) {
         [self finishPanWithPanGestureRecognizer:panGestureRecognizer verticalDelta:verticalDelta viewToPan:viewToPan anchorPoint:anchorPoint];
@@ -43,10 +44,11 @@ static const CGFloat NYTPhotoDismissalInteractionControllerReturnToCenterVelocit
 - (void)finishPanWithPanGestureRecognizer:(UIPanGestureRecognizer *)panGestureRecognizer verticalDelta:(CGFloat)verticalDelta viewToPan:(UIView *)viewToPan anchorPoint:(CGPoint)anchorPoint {
     UIView *fromView = [self.transitionContext viewForKey:UITransitionContextFromViewKey];
     
-    // Return to center case.
-    CGFloat velocityY = [panGestureRecognizer velocityInView:panGestureRecognizer.view].y;
+//     Return to center case.
+//    CGFloat velocityY = [panGestureRecognizer velocityInView:panGestureRecognizer.view].y;
     
-    CGFloat animationDuration = (ABS(velocityY) * NYTPhotoDismissalInteractionControllerReturnToCenterVelocityAnimationRatio) + 0.2;
+//    CGFloat animationDuration = (ABS(velocityY) * NYTPhotoDismissalInteractionControllerReturnToCenterVelocityAnimationRatio) + 0.2;
+    CGFloat animationDuration = 0.17;
     CGFloat animationCurve = UIViewAnimationOptionCurveEaseOut;
     CGPoint finalPageViewCenterPoint = anchorPoint;
     CGFloat finalBackgroundAlpha = 1.0;
@@ -69,8 +71,9 @@ static const CGFloat NYTPhotoDismissalInteractionControllerReturnToCenterVelocit
             finalPageViewCenterPoint = CGPointMake(fromView.center.x, finalCenterY);
             
             // Maintain the velocity of the pan, while easing out.
-            animationDuration = ABS(finalPageViewCenterPoint.y - viewToPan.center.y) / ABS(velocityY);
-            animationDuration = MIN(animationDuration, NYTPhotoDismissalInteractionControllerPanDismissMaximumDuration);
+//            animationDuration = ABS(finalPageViewCenterPoint.y - viewToPan.center.y) / ABS(velocityY);
+//            animationDuration = MIN(animationDuration, NYTPhotoDismissalInteractionControllerPanDismissMaximumDuration);
+            
             
             animationCurve = UIViewAnimationOptionCurveEaseOut;
             finalBackgroundAlpha = 0.0;
@@ -80,7 +83,7 @@ static const CGFloat NYTPhotoDismissalInteractionControllerReturnToCenterVelocit
     if (!didAnimateUsingAnimator) {
         [UIView animateWithDuration:animationDuration delay:0 options:animationCurve animations:^{
             viewToPan.center = finalPageViewCenterPoint;
-            
+            viewToPan.alpha = finalBackgroundAlpha;
             fromView.backgroundColor = [fromView.backgroundColor colorWithAlphaComponent:finalBackgroundAlpha];
         } completion:^(BOOL finished) {
             if (isDismissing) {
