@@ -12,6 +12,7 @@
 @interface NYTPhotosOverlayView ()
 
 @property (nonatomic) UIView *topBar;
+@property (nonatomic, strong) UILabel *titleLabel;
 
 @end
 
@@ -66,6 +67,10 @@
                                          _rightItemView.bounds.size.width,
                                          _rightItemView.bounds.size.height);
     }
+    if (_titleLabel) {
+        _titleLabel.center = CGPointMake(_topBar.bounds.size.width / 2.0,
+                                         _topBar.bounds.size.height / 2.0);
+    }
 }
 
 #pragma mark - NYTPhotosOverlayView
@@ -85,6 +90,11 @@
     NSLayoutConstraint *horizontalPositionConstraint = [NSLayoutConstraint constraintWithItem:self.topBar attribute:NSLayoutAttributeCenterX relatedBy:NSLayoutRelationEqual toItem:self attribute:NSLayoutAttributeCenterX multiplier:1.0 constant:0.0];
     [self addConstraints:@[topConstraint, widthConstraint, horizontalPositionConstraint]];
     [self.topBar addConstraint:heightConstraint];
+    
+    self.titleLabel = [UILabel new];
+    _titleLabel.font = [UIFont systemFontOfSize:17.0];
+    _titleLabel.textColor = [UIColor whiteColor];
+    [self.topBar addSubview:_titleLabel];
 }
 
 - (void)setCaptionView:(UIView *)captionView {
@@ -126,6 +136,16 @@
 
 -(void)setRightItemInsets:(UIEdgeInsets)rightItemInsets {
     _rightItemInsets = rightItemInsets;
+    [self setNeedsLayout];
+}
+
+-(NSString *)title {
+    return self.titleLabel.text;
+}
+
+-(void)setTitle:(NSString *)title {
+    self.titleLabel.text = title;
+    [self.titleLabel sizeToFit];
     [self setNeedsLayout];
 }
 
