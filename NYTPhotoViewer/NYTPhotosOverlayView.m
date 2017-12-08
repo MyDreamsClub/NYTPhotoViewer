@@ -12,7 +12,6 @@
 @interface NYTPhotosOverlayView ()
 
 @property (nonatomic) UIView *topBar;
-@property (nonatomic, strong) UILabel *titleLabel;
 
 @end
 
@@ -68,8 +67,8 @@
                                          _rightItemView.bounds.size.height);
     }
     if (_titleLabel) {
-        _titleLabel.center = CGPointMake(_topBar.bounds.size.width / 2.0,
-                                         _topBar.bounds.size.height / 2.0);
+        _titleLabel.center = CGPointMake(_topBar.bounds.size.width / 2.0 + _titleLabelOffset.horizontal,
+                                         _topBar.bounds.size.height / 2.0 + _titleLabelOffset.vertical);
     }
 }
 
@@ -78,6 +77,7 @@
 - (void)setupTopBar {
     self.leftItemInsets = UIEdgeInsetsMake(32, 8, 0, 0);
     self.rightItemInsets = UIEdgeInsetsMake(32, 0, 0, 8);
+    self.titleLabelOffset = UIOffsetMake(0, 0);
     
     self.topBar = [[UIView alloc] init];
     self.topBar.backgroundColor = [UIColor colorWithWhite:0.0 alpha:0.65];
@@ -146,6 +146,11 @@
 -(void)setTitle:(NSString *)title {
     self.titleLabel.text = title;
     [self.titleLabel sizeToFit];
+    [self setNeedsLayout];
+}
+
+-(void)setTitleLabelOffset:(UIOffset)titleLabelOffset {
+    _titleLabelOffset = titleLabelOffset;
     [self setNeedsLayout];
 }
 

@@ -36,6 +36,9 @@ NS_ASSUME_NONNULL_BEGIN
 @property(nonatomic, copy, nullable) UIView *rightItemView;
 @property(nonatomic, assign) UIEdgeInsets rightItemInsets;
 
+@property (nonatomic, strong) UILabel *titleLabel;
+@property (nonatomic, assign) UIOffset titleLabelOffset;
+
 /**
  *  A view representing the caption for the photo, which will be set to full width and locked to the bottom. Can be any `UIView` object, but is expected to respond to `intrinsicContentSize` appropriately to calculate height.
  */

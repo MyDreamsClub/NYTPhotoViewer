@@ -341,6 +341,16 @@ static const CGFloat NYTPhotosViewControllerInterPhotoSpacing = 16.0;
     return self.overlayView.rightItemInsets;
 }
 
+-(UILabel *)titleLabel {
+    return self.overlayView.titleLabel;
+}
+-(UIOffset)titleOffset {
+    return self.overlayView.titleLabelOffset;
+}
+-(void)setTitleOffset:(UIOffset)titleOffset {
+    self.overlayView.titleLabelOffset = titleOffset;
+}
+
 - (void)displayPhoto:(id <NYTPhoto>)photo animated:(BOOL)animated {
     if (![self.dataSource containsPhoto:photo]) {
         return;

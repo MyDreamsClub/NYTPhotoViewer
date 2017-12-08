@@ -69,6 +69,9 @@ extern NSString * const NYTPhotosViewControllerDidDismissNotification;
 @property(nonatomic, copy, nullable) UIView *rightItemView;
 @property(nonatomic, assign) UIEdgeInsets rightItemInsets;
 
+@property(nonatomic, strong, readonly) UILabel *titleLabel;
+@property(nonatomic, assign) UIOffset titleOffset;
+
 /**
  *  The object that acts as the delegate of the `NYTPhotosViewController`.
  *
