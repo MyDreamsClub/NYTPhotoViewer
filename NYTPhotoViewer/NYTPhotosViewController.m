@@ -438,8 +438,15 @@ static const CGFloat NYTPhotosViewControllerInterPhotoSpacing = 16.0;
     if (!viewController) {
         return;
     }
-    
-    [self.pageViewController setViewControllers:@[viewController] direction:UIPageViewControllerNavigationDirectionForward animated:animated completion:nil];
+    __weak typeof(self) blocksafeSelf = self;
+    [self.pageViewController setViewControllers:@[viewController] direction:UIPageViewControllerNavigationDirectionForward animated:YES completion:^(BOOL finished){
+        if(finished)
+        {
+            dispatch_async(dispatch_get_main_queue(), ^{
+                [blocksafeSelf.pageViewController setViewControllers:@[viewController] direction:UIPageViewControllerNavigationDirectionForward animated:NO completion:NULL];// bug fix for uipageview controller
+            });
+        }
+    }];
 }
 
 - (void)setOverlayViewHidden:(BOOL)hidden animated:(BOOL)animated {
