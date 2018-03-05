@@ -91,21 +91,21 @@ static const CGFloat NYTPhotosViewControllerInterPhotoSpacing = 16.0;
 
 - (instancetype)initWithCoder:(NSCoder *)aDecoder {
     self = [super initWithCoder:aDecoder];
-
+    
     if (self) {
         [self commonInitWithPhotos:nil initialPhoto:nil delegate:nil];
     }
-
+    
     return self;
 }
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-
+    
     self.view.tintColor = [UIColor whiteColor];
     self.view.backgroundColor = [UIColor blackColor];
     self.pageViewController.view.backgroundColor = [UIColor clearColor];
-
+    
     [self.pageViewController.view addGestureRecognizer:self.panGestureRecognizer];
     [self.pageViewController.view addGestureRecognizer:self.singleTapGestureRecognizer];
     
@@ -193,28 +193,29 @@ static const CGFloat NYTPhotosViewControllerInterPhotoSpacing = 16.0;
         [weakSelf updateImageForPhoto:photo];
     };
     _delegate = delegate;
-
+    
     _panGestureRecognizer = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(didPanWithGestureRecognizer:)];
     _singleTapGestureRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(didSingleTapWithGestureRecognizer:)];
-
+    
     _transitionController = [[NYTPhotoTransitionController alloc] init];
     self.modalPresentationStyle = UIModalPresentationCustom;
     self.transitioningDelegate = _transitionController;
     self.modalPresentationCapturesStatusBarAppearance = YES;
-
+    
     _overlayView = [[NYTPhotosOverlayView alloc] initWithFrame:CGRectZero];
     UIButton *closeButton = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, 30, 30)];
     [closeButton setImage:[UIImage imageNamed:@"NYTPhotoViewerCloseButtonX" inBundle:[NSBundle nyt_photoViewerResourceBundle] compatibleWithTraitCollection:nil] forState:UIControlStateNormal];
     [closeButton addTarget:self action:@selector(doneButtonTapped:) forControlEvents:UIControlEventTouchUpInside];
     _overlayView.leftItemView = closeButton;
-
+    
     _notificationCenter = [[NSNotificationCenter alloc] init];
-
+    
     [self setupPageViewControllerWithInitialPhoto:initialPhoto];
 }
 
 - (void)setupPageViewControllerWithInitialPhoto:(id <NYTPhoto>)initialPhoto {
     self.pageViewController = [[UIPageViewController alloc] initWithTransitionStyle:UIPageViewControllerTransitionStyleScroll navigationOrientation:UIPageViewControllerNavigationOrientationHorizontal options:@{UIPageViewControllerOptionInterPageSpacingKey: @(NYTPhotosViewControllerInterPhotoSpacing)}];
+    self.edgesForExtendedLayout = UIRectEdgeNone;
     
     self.pageViewController.delegate = self;
     self.pageViewController.dataSource = self;
@@ -233,7 +234,7 @@ static const CGFloat NYTPhotosViewControllerInterPhotoSpacing = 16.0;
 
 - (void)addOverlayView {
     NSAssert(self.overlayView != nil, @"_overlayView must be set during initialization, to provide bar button items for this %@", NSStringFromClass([self class]));
-
+    
     UIColor *textColor = self.view.tintColor ?: [UIColor whiteColor];
     self.overlayView.titleTextAttributes = @{NSForegroundColorAttributeName: textColor};
     
@@ -259,7 +260,7 @@ static const CGFloat NYTPhotosViewControllerInterPhotoSpacing = 16.0;
         if (photoIndex < self.dataSource.numberOfPhotos) {
             displayIndex = photoIndex + 1;
         }
-
+        
         overlayTitle = [NSString localizedStringWithFormat:NSLocalizedString(@"%lu of %lu", nil), (unsigned long)displayIndex, (unsigned long)self.dataSource.numberOfPhotos];
     }
     
@@ -297,18 +298,18 @@ static const CGFloat NYTPhotosViewControllerInterPhotoSpacing = 16.0;
                 [self.delegate photosViewController:self actionCompletedWithActivityType:activityType];
             }
         };
-
+        
         [self displayActivityViewController:activityViewController animated:YES];
     }
 }
 
 - (void)displayActivityViewController:(UIActivityViewController *)controller animated:(BOOL)animated {
-
+    
     if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone) {
         [self presentViewController:controller animated:animated completion:nil];
     }
     else {
-//        controller.popoverPresentationController.barButtonItem = self.rightBarButtonItem;
+        //        controller.popoverPresentationController.barButtonItem = self.rightBarButtonItem;
         [self presentViewController:controller animated:animated completion:nil];
     }
 }
@@ -383,7 +384,7 @@ static const CGFloat NYTPhotosViewControllerInterPhotoSpacing = 16.0;
 }
 
 #pragma mark - View Controller Dismissal
-    
+
 - (void)dismissViewControllerAnimated:(BOOL)animated userInitiated:(BOOL)isUserInitiated completion:(void (^)(void))completion {
     if (self.presentedViewController) {
         [super dismissViewControllerAnimated:animated completion:completion];
@@ -397,10 +398,10 @@ static const CGFloat NYTPhotosViewControllerInterPhotoSpacing = 16.0;
     
     self.transitionController.startingView = startingView;
     self.transitionController.endingView = self.referenceViewForCurrentPhoto;
-
+    
     self.overlayWasHiddenBeforeTransition = self.overlayView.hidden;
     [self setOverlayViewHidden:YES animated:animated];
-
+    
     // Cocoa convention is not to call delegate methods when you do something directly in code,
     // so we'll not call delegate methods if this is a programmatic dismissal:
     BOOL const shouldSendDelegateMessages = isUserInitiated;
@@ -425,7 +426,7 @@ static const CGFloat NYTPhotosViewControllerInterPhotoSpacing = 16.0;
             
             [[NSNotificationCenter defaultCenter] postNotificationName:NYTPhotosViewControllerDidDismissNotification object:self];
         }
-
+        
         if (completion) {
             completion();
         }
@@ -438,10 +439,15 @@ static const CGFloat NYTPhotosViewControllerInterPhotoSpacing = 16.0;
     if (!viewController) {
         return;
     }
+    
+    if (!animated) {
+        [self.pageViewController setViewControllers:@[viewController] direction:UIPageViewControllerNavigationDirectionForward animated:NO completion:nil];
+        return;
+    }
+    
     __weak typeof(self) blocksafeSelf = self;
     [self.pageViewController setViewControllers:@[viewController] direction:UIPageViewControllerNavigationDirectionForward animated:YES completion:^(BOOL finished){
-        if(finished)
-        {
+        if(finished) {
             dispatch_async(dispatch_get_main_queue(), ^{
                 [blocksafeSelf.pageViewController setViewControllers:@[viewController] direction:UIPageViewControllerNavigationDirectionForward animated:NO completion:NULL];// bug fix for uipageview controller
             });
@@ -481,12 +487,12 @@ static const CGFloat NYTPhotosViewControllerInterPhotoSpacing = 16.0;
         NYTPhotoViewController *photoViewController = [[NYTPhotoViewController alloc] initWithPhoto:photo loadingView:loadingView notificationCenter:self.notificationCenter];
         photoViewController.delegate = self;
         [self.singleTapGestureRecognizer requireGestureRecognizerToFail:photoViewController.doubleTapGestureRecognizer];
-
+        
         if([self.delegate respondsToSelector:@selector(photosViewController:maximumZoomScaleForPhoto:)]) {
             CGFloat maximumZoomScale = [self.delegate photosViewController:self maximumZoomScaleForPhoto:photo];
             photoViewController.scalingImageView.maximumZoomScale = maximumZoomScale;
         }
-
+        
         return photoViewController;
     }
     
@@ -609,3 +615,4 @@ static const CGFloat NYTPhotosViewControllerInterPhotoSpacing = 16.0;
 }
 
 @end
+
