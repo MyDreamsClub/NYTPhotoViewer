@@ -107,6 +107,7 @@ static const CGFloat NYTPhotosViewControllerInterPhotoSpacing = 16.0;
     self.view.backgroundColor = [UIColor blackColor];
     self.swipeView.backgroundColor = [UIColor clearColor];
     
+    self.swipeView.frame = self.view.bounds;
     [self.swipeView addGestureRecognizer:self.panGestureRecognizer];
     [self.swipeView addGestureRecognizer:self.singleTapGestureRecognizer];
     [self.swipeView setNeedsLayout];
