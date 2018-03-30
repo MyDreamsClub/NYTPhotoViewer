@@ -9,13 +9,14 @@
 #import "NYTPhotosViewController.h"
 #import "NYTPhotosViewControllerDataSource.h"
 #import "NYTPhotosDataSource.h"
-#import "NYTPhotoViewController.h"
+#import "NYTPhotoView.h"
 #import "NYTPhotoTransitionController.h"
 #import "NYTScalingImageView.h"
 #import "NYTPhoto.h"
 #import "NYTPhotosOverlayView.h"
 #import "NYTPhotoCaptionView.h"
 #import "NSBundle+NYTPhotoViewer.h"
+#import "NYTSwipeView.h"
 
 #ifdef ANIMATED_GIF_SUPPORT
 #import <FLAnimatedImage/FLAnimatedImage.h>
@@ -28,12 +29,12 @@ NSString * const NYTPhotosViewControllerDidDismissNotification = @"NYTPhotosView
 static const CGFloat NYTPhotosViewControllerOverlayAnimationDuration = 0.2;
 static const CGFloat NYTPhotosViewControllerInterPhotoSpacing = 16.0;
 
-@interface NYTPhotosViewController () <UIPageViewControllerDataSource, UIPageViewControllerDelegate, NYTPhotoViewControllerDelegate>
+@interface NYTPhotosViewController () <NYTSwipeViewDelegate, NYTSwipeViewDataSource, NYTPhotoViewDelegate>
 
 - (instancetype)initWithCoder:(NSCoder *)aDecoder NS_DESIGNATED_INITIALIZER;
 
 @property (nonatomic) id <NYTPhotosViewControllerDataSource> dataSource;
-@property (nonatomic) UIPageViewController *pageViewController;
+@property (nonatomic) NYTSwipeView *swipeView;
 @property (nonatomic) NYTPhotoTransitionController *transitionController;
 @property (nonatomic) UIPopoverController *activityPopoverController;
 
@@ -48,9 +49,9 @@ static const CGFloat NYTPhotosViewControllerInterPhotoSpacing = 16.0;
 @property (nonatomic) BOOL shouldHandleLongPress;
 @property (nonatomic) BOOL overlayWasHiddenBeforeTransition;
 
-@property (nonatomic, readonly) NYTPhotoViewController *currentPhotoViewController;
 @property (nonatomic, readonly) UIView *referenceViewForCurrentPhoto;
 @property (nonatomic, readonly) CGPoint boundsCenterPoint;
+@property (nonatomic) NYTPhotoView *currentPhotoView;
 
 @end
 
@@ -59,8 +60,8 @@ static const CGFloat NYTPhotosViewControllerInterPhotoSpacing = 16.0;
 #pragma mark - NSObject
 
 - (void)dealloc {
-    _pageViewController.dataSource = nil;
-    _pageViewController.delegate = nil;
+    _swipeView.dataSource = nil;
+    _swipeView.delegate = nil;
 }
 
 #pragma mark - NSObject(UIResponderStandardEditActions)
@@ -104,15 +105,14 @@ static const CGFloat NYTPhotosViewControllerInterPhotoSpacing = 16.0;
     
     self.view.tintColor = [UIColor whiteColor];
     self.view.backgroundColor = [UIColor blackColor];
-    self.pageViewController.view.backgroundColor = [UIColor clearColor];
+    self.swipeView.backgroundColor = [UIColor clearColor];
     
-    [self.pageViewController.view addGestureRecognizer:self.panGestureRecognizer];
-    [self.pageViewController.view addGestureRecognizer:self.singleTapGestureRecognizer];
+    [self.swipeView addGestureRecognizer:self.panGestureRecognizer];
+    [self.swipeView addGestureRecognizer:self.singleTapGestureRecognizer];
+    [self.swipeView setNeedsLayout];
+    [self.swipeView layoutIfNeeded];
     
-    [self addChildViewController:self.pageViewController];
-    [self.view addSubview:self.pageViewController.view];
-    [self.pageViewController didMoveToParentViewController:self];
-    
+    [self.view addSubview:self.swipeView];
     [self addOverlayView];
     
     NSArray *potentialClippers = nil;
@@ -124,7 +124,9 @@ static const CGFloat NYTPhotosViewControllerInterPhotoSpacing = 16.0;
     
     UIView *endingView;
     if (self.currentlyDisplayedPhoto.image || self.currentlyDisplayedPhoto.placeholderImage) {
-        endingView = self.currentPhotoViewController.scalingImageView.imageView;
+        endingView = ((NYTPhotoView *)self.swipeView.currentItemView).scalingImageView.imageView;
+    } else {
+        endingView = self.currentPhotoView;
     }
     
     self.transitionController.endingView = endingView;
@@ -141,7 +143,7 @@ static const CGFloat NYTPhotosViewControllerInterPhotoSpacing = 16.0;
 - (void)viewWillLayoutSubviews {
     [super viewWillLayoutSubviews];
     
-    self.pageViewController.view.frame = self.view.bounds;
+    self.swipeView.frame = self.view.bounds;
     self.overlayView.frame = self.view.bounds;
 }
 
@@ -214,22 +216,22 @@ static const CGFloat NYTPhotosViewControllerInterPhotoSpacing = 16.0;
 }
 
 - (void)setupPageViewControllerWithInitialPhoto:(id <NYTPhoto>)initialPhoto {
-    self.pageViewController = [[UIPageViewController alloc] initWithTransitionStyle:UIPageViewControllerTransitionStyleScroll navigationOrientation:UIPageViewControllerNavigationOrientationHorizontal options:@{UIPageViewControllerOptionInterPageSpacingKey: @(NYTPhotosViewControllerInterPhotoSpacing)}];
+    self.swipeView = [NYTSwipeView new];
     self.edgesForExtendedLayout = UIRectEdgeNone;
     
-    self.pageViewController.delegate = self;
-    self.pageViewController.dataSource = self;
+    self.swipeView.delegate = self;
+    self.swipeView.dataSource = self;
     
-    NYTPhotoViewController *initialPhotoViewController;
+    NYTPhotoView *initialPhotoView;
     
     if ([self.dataSource containsPhoto:initialPhoto]) {
-        initialPhotoViewController = [self newPhotoViewControllerForPhoto:initialPhoto];
+        initialPhotoView = [self newPhotoViewForPhoto:initialPhoto];
     }
     else {
-        initialPhotoViewController = [self newPhotoViewControllerForPhoto:self.dataSource[0]];
+        initialPhotoView = [self newPhotoViewForPhoto:self.dataSource[0]];
     }
     
-    [self setCurrentlyDisplayedViewController:initialPhotoViewController animated:NO];
+    [self setCurrentlyDisplayedView:initialPhotoView animated:NO];
 }
 
 - (void)addOverlayView {
@@ -353,12 +355,12 @@ static const CGFloat NYTPhotosViewControllerInterPhotoSpacing = 16.0;
 }
 
 - (void)displayPhoto:(id <NYTPhoto>)photo animated:(BOOL)animated {
-    if (![self.dataSource containsPhoto:photo]) {
+    NSUInteger photoIndex = [self.dataSource indexOfPhoto:photo];
+    if (photoIndex == NSNotFound) {
         return;
     }
     
-    NYTPhotoViewController *photoViewController = [self newPhotoViewControllerForPhoto:photo];
-    [self setCurrentlyDisplayedViewController:photoViewController animated:animated];
+    self.swipeView.currentItemIndex = photoIndex;
     [self updateOverlayInformation];
 }
 
@@ -379,7 +381,7 @@ static const CGFloat NYTPhotosViewControllerInterPhotoSpacing = 16.0;
     }
     else {
         self.transitionController.forcesNonInteractiveDismissal = YES;
-        [self.transitionController didPanWithPanGestureRecognizer:panGestureRecognizer viewToPan:self.pageViewController.view anchorPoint:self.boundsCenterPoint];
+        [self.transitionController didPanWithPanGestureRecognizer:panGestureRecognizer viewToPan:self.swipeView anchorPoint:self.boundsCenterPoint];
     }
 }
 
@@ -393,7 +395,7 @@ static const CGFloat NYTPhotosViewControllerInterPhotoSpacing = 16.0;
     
     UIView *startingView;
     if (self.currentlyDisplayedPhoto.image || self.currentlyDisplayedPhoto.placeholderImage || self.currentlyDisplayedPhoto.imageData) {
-        startingView = self.currentPhotoViewController.scalingImageView.imageView;
+        startingView = ((NYTPhotoView *)self.swipeView.currentItemView).scalingImageView.imageView;
     }
     
     self.transitionController.startingView = startingView;
@@ -435,24 +437,15 @@ static const CGFloat NYTPhotosViewControllerInterPhotoSpacing = 16.0;
 
 #pragma mark - Convenience
 
-- (void)setCurrentlyDisplayedViewController:(UIViewController <NYTPhotoContainer> *)viewController animated:(BOOL)animated {
-    if (!viewController) {
+- (void)setCurrentlyDisplayedView:(NYTPhotoView *)photoView animated:(BOOL)animated {
+    if (!photoView) {
         return;
     }
-    
-    if (!animated) {
-        [self.pageViewController setViewControllers:@[viewController] direction:UIPageViewControllerNavigationDirectionForward animated:NO completion:nil];
-        return;
+    self.currentPhotoView = photoView;
+    NSInteger photoIndex = [self.dataSource indexOfPhoto:photoView.photo];
+    if (photoIndex != NSNotFound) {
+        self.swipeView.currentItemIndex = photoIndex;
     }
-    
-    __weak typeof(self) blocksafeSelf = self;
-    [self.pageViewController setViewControllers:@[viewController] direction:UIPageViewControllerNavigationDirectionForward animated:YES completion:^(BOOL finished){
-        if(finished) {
-            dispatch_async(dispatch_get_main_queue(), ^{
-                [blocksafeSelf.pageViewController setViewControllers:@[viewController] direction:UIPageViewControllerNavigationDirectionForward animated:NO completion:NULL];// bug fix for uipageview controller
-            });
-        }
-    }];
 }
 
 - (void)setOverlayViewHidden:(BOOL)hidden animated:(BOOL)animated {
@@ -477,23 +470,23 @@ static const CGFloat NYTPhotosViewControllerInterPhotoSpacing = 16.0;
     }
 }
 
-- (NYTPhotoViewController *)newPhotoViewControllerForPhoto:(id <NYTPhoto>)photo {
+- (NYTPhotoView *)newPhotoViewForPhoto:(id <NYTPhoto>)photo {
     if (photo) {
         UIView *loadingView;
         if ([self.delegate respondsToSelector:@selector(photosViewController:loadingViewForPhoto:)]) {
             loadingView = [self.delegate photosViewController:self loadingViewForPhoto:photo];
         }
         
-        NYTPhotoViewController *photoViewController = [[NYTPhotoViewController alloc] initWithPhoto:photo loadingView:loadingView notificationCenter:self.notificationCenter];
-        photoViewController.delegate = self;
-        [self.singleTapGestureRecognizer requireGestureRecognizerToFail:photoViewController.doubleTapGestureRecognizer];
+        NYTPhotoView *photoView = [[NYTPhotoView alloc] initWithPhoto:photo loadingView:loadingView notificationCenter:self.notificationCenter];
+        photoView.delegate = self;
+        [self.singleTapGestureRecognizer requireGestureRecognizerToFail:photoView.doubleTapGestureRecognizer];
         
         if([self.delegate respondsToSelector:@selector(photosViewController:maximumZoomScaleForPhoto:)]) {
             CGFloat maximumZoomScale = [self.delegate photosViewController:self maximumZoomScaleForPhoto:photo];
-            photoViewController.scalingImageView.maximumZoomScale = maximumZoomScale;
+            photoView.scalingImageView.maximumZoomScale = maximumZoomScale;
         }
         
-        return photoViewController;
+        return photoView;
     }
     
     return nil;
@@ -508,11 +501,7 @@ static const CGFloat NYTPhotosViewControllerInterPhotoSpacing = 16.0;
 }
 
 - (id <NYTPhoto>)currentlyDisplayedPhoto {
-    return self.currentPhotoViewController.photo;
-}
-
-- (NYTPhotoViewController *)currentPhotoViewController {
-    return self.pageViewController.viewControllers.firstObject;
+    return ((NYTPhotoView *)self.swipeView.currentItemView).photo;
 }
 
 - (UIView *)referenceViewForCurrentPhoto {
@@ -531,14 +520,14 @@ static const CGFloat NYTPhotosViewControllerInterPhotoSpacing = 16.0;
     return CGPointMake(CGRectGetMidX(self.view.bounds), CGRectGetMidY(self.view.bounds));
 }
 
-#pragma mark - NYTPhotoViewControllerDelegate
+#pragma mark - NYTPhotoViewDelegate
 
-- (void)photoViewController:(NYTPhotoViewController *)photoViewController didLongPressWithGestureRecognizer:(UILongPressGestureRecognizer *)longPressGestureRecognizer {
+- (void)photoView:(NYTPhotoView *)photoView didLongPressWithGestureRecognizer:(UILongPressGestureRecognizer *)longPressGestureRecognizer {
     self.shouldHandleLongPress = NO;
     
     BOOL clientDidHandle = NO;
     if ([self.delegate respondsToSelector:@selector(photosViewController:handleLongPressForPhoto:withGestureRecognizer:)]) {
-        clientDidHandle = [self.delegate photosViewController:self handleLongPressForPhoto:photoViewController.photo withGestureRecognizer:longPressGestureRecognizer];
+        clientDidHandle = [self.delegate photosViewController:self handleLongPressForPhoto:photoView.photo withGestureRecognizer:longPressGestureRecognizer];
     }
     
     self.shouldHandleLongPress = !clientDidHandle;
@@ -552,27 +541,28 @@ static const CGFloat NYTPhotosViewControllerInterPhotoSpacing = 16.0;
     }
 }
 
-#pragma mark - UIPageViewControllerDataSource
+#pragma mark - SwipeViewDataSource
 
-- (UIViewController *)pageViewController:(UIPageViewController *)pageViewController viewControllerBeforeViewController:(UIViewController <NYTPhotoContainer> *)viewController {
-    NSUInteger photoIndex = [self.dataSource indexOfPhoto:viewController.photo];
-    return [self newPhotoViewControllerForPhoto:self.dataSource[photoIndex - 1]];
+-(NSInteger)numberOfItemsInSwipeView:(NYTSwipeView *)swipeView {
+    return self.dataSource.numberOfPhotos;
 }
 
-- (UIViewController *)pageViewController:(UIPageViewController *)pageViewController viewControllerAfterViewController:(UIViewController <NYTPhotoContainer> *)viewController {
-    NSUInteger photoIndex = [self.dataSource indexOfPhoto:viewController.photo];
-    return [self newPhotoViewControllerForPhoto:self.dataSource[photoIndex + 1]];
-}
-
-#pragma mark - UIPageViewControllerDelegate
-
-- (void)pageViewController:(UIPageViewController *)pageViewController didFinishAnimating:(BOOL)finished previousViewControllers:(NSArray *)previousViewControllers transitionCompleted:(BOOL)completed {
-    if (completed) {
-        [self updateOverlayInformation];
-        
-        UIViewController <NYTPhotoContainer> *photoViewController = pageViewController.viewControllers.firstObject;
-        [self didNavigateToPhoto:photoViewController.photo];
+-(UIView *)swipeView:(NYTSwipeView *)swipeView viewForItemAtIndex:(NSInteger)index reusingView:(UIView *)view {
+    UIView *pageView = view;
+    if (view) {
+        pageView = view;
+    } else {
+        pageView = [self newPhotoViewForPhoto:self.dataSource[index]];
+        pageView.frame = swipeView.bounds;
     }
+    return pageView;
+}
+
+#pragma mark - SwipeViewDelegate
+
+-(void)swipeViewDidEndDecelerating:(NYTSwipeView *)swipeView {
+    [self updateOverlayInformation];
+    [self didNavigateToPhoto:((NYTPhotoView *)swipeView.currentItemView).photo];
 }
 
 #pragma mark - Helpers

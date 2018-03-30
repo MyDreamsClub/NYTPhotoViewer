@@ -9,6 +9,7 @@
 @import UIKit;
 
 @class NYTPhotosOverlayView;
+@class NYTSwipeView;
 
 @protocol NYTPhoto;
 @protocol NYTPhotosViewControllerDelegate;
@@ -51,7 +52,7 @@ extern NSString * const NYTPhotosViewControllerDidDismissNotification;
 /**
  *  The internal page view controller used for swiping horizontally, photo to photo. Created during `viewDidLoad`.
  */
-@property (nonatomic, readonly, nullable) UIPageViewController *pageViewController;
+@property (nonatomic, readonly, nullable) NYTSwipeView *swipeView;
 
 /**
  *  The object conforming to `NYTPhoto` that is currently being displayed by the `pageViewController`.

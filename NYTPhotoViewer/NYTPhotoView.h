@@ -1,9 +1,9 @@
 //
-//  NYTPhotoViewController.h
+//  NYTPhotoView.h
 //  NYTPhotoViewer
 //
-//  Created by Brian Capps on 2/11/15.
-//
+//  Created by Vladimir Lyseev on 29.03.18.
+//  Copyright © 2018 NYTimes. All rights reserved.
 //
 
 @import UIKit;
@@ -12,7 +12,7 @@
 @class NYTScalingImageView;
 
 @protocol NYTPhoto;
-@protocol NYTPhotoViewControllerDelegate;
+@protocol NYTPhotoViewDelegate;
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -24,7 +24,7 @@ extern NSString * const NYTPhotoViewControllerPhotoImageUpdatedNotification;
 /**
  *  The view controller controlling the display of a single photo object.
  */
-@interface NYTPhotoViewController : UIViewController <NYTPhotoContainer>
+@interface NYTPhotoView : UIView <NYTPhotoContainer>
 
 /**
  *  The internal scaling image view used to display the photo.
@@ -44,7 +44,7 @@ extern NSString * const NYTPhotoViewControllerPhotoImageUpdatedNotification;
 /**
  *  The object that acts as the photo view controller's delegate.
  */
-@property (nonatomic, weak, nullable) id <NYTPhotoViewControllerDelegate> delegate;
+@property (nonatomic, weak, nullable) id <NYTPhotoViewDelegate> delegate;
 
 /**
  *  The designated initializer that takes the photo and activity view.
@@ -59,7 +59,7 @@ extern NSString * const NYTPhotoViewControllerPhotoImageUpdatedNotification;
 
 @end
 
-@protocol NYTPhotoViewControllerDelegate <NSObject>
+@protocol NYTPhotoViewDelegate <NSObject>
 
 @optional
 
@@ -69,7 +69,7 @@ extern NSString * const NYTPhotoViewControllerPhotoImageUpdatedNotification;
  *  @param photoViewController        The `NYTPhotoViewController` instance that sent the delegate message.
  *  @param longPressGestureRecognizer The long press gesture recognizer that recognized the long press.
  */
-- (void)photoViewController:(NYTPhotoViewController *)photoViewController didLongPressWithGestureRecognizer:(UILongPressGestureRecognizer *)longPressGestureRecognizer;
+- (void)photoView:(NYTPhotoView *)photoView didLongPressWithGestureRecognizer:(UILongPressGestureRecognizer *)longPressGestureRecognizer;
 
 @end
 
