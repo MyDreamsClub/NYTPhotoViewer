@@ -9,8 +9,8 @@
 #import "NYTPhotoDismissalInteractionController.h"
 
 static const CGFloat NYTPhotoDismissalInteractionControllerPanDismissDistanceRatio = 50.0 / 667.0; // distance over iPhone 6 height.
-static const CGFloat NYTPhotoDismissalInteractionControllerPanDismissMaximumDuration = 0.45;
-static const CGFloat NYTPhotoDismissalInteractionControllerReturnToCenterVelocityAnimationRatio = 0.00007; // Arbitrary value that looked decent.
+//static const CGFloat NYTPhotoDismissalInteractionControllerPanDismissMaximumDuration = 0.45;
+//static const CGFloat NYTPhotoDismissalInteractionControllerReturnToCenterVelocityAnimationRatio = 0.00007; // Arbitrary value that looked decent.
 
 @interface NYTPhotoDismissalInteractionController ()
 

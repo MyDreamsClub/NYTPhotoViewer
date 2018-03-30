@@ -27,7 +27,7 @@ NSString * const NYTPhotosViewControllerWillDismissNotification = @"NYTPhotosVie
 NSString * const NYTPhotosViewControllerDidDismissNotification = @"NYTPhotosViewControllerDidDismissNotification";
 
 static const CGFloat NYTPhotosViewControllerOverlayAnimationDuration = 0.2;
-static const CGFloat NYTPhotosViewControllerInterPhotoSpacing = 16.0;
+//static const CGFloat NYTPhotosViewControllerInterPhotoSpacing = 16.0;
 
 @interface NYTPhotosViewController () <NYTSwipeViewDelegate, NYTSwipeViewDataSource, NYTPhotoViewDelegate>
 
