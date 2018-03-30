@@ -126,7 +126,7 @@ static const CGFloat NYTPhotosViewControllerInterPhotoSpacing = 16.0;
     if (self.currentlyDisplayedPhoto.image || self.currentlyDisplayedPhoto.placeholderImage) {
         endingView = ((NYTPhotoView *)self.swipeView.currentItemView).scalingImageView.imageView;
     } else {
-        endingView = self.currentPhotoView;
+        endingView = self.currentPhotoView.scalingImageView.imageView;
     }
     
     self.transitionController.endingView = endingView;
@@ -478,6 +478,7 @@ static const CGFloat NYTPhotosViewControllerInterPhotoSpacing = 16.0;
         }
         
         NYTPhotoView *photoView = [[NYTPhotoView alloc] initWithPhoto:photo loadingView:loadingView notificationCenter:self.notificationCenter];
+        photoView.frame = self.swipeView.bounds;
         photoView.delegate = self;
         [self.singleTapGestureRecognizer requireGestureRecognizerToFail:photoView.doubleTapGestureRecognizer];
         
@@ -548,13 +549,9 @@ static const CGFloat NYTPhotosViewControllerInterPhotoSpacing = 16.0;
 }
 
 -(UIView *)swipeView:(NYTSwipeView *)swipeView viewForItemAtIndex:(NSInteger)index reusingView:(UIView *)view {
-    UIView *pageView = view;
-    if (view) {
-        pageView = view;
-    } else {
-        pageView = [self newPhotoViewForPhoto:self.dataSource[index]];
-        pageView.frame = swipeView.bounds;
-    }
+    [view removeFromSuperview];
+    UIView *pageView = [self newPhotoViewForPhoto:self.dataSource[index]];
+    pageView.frame = swipeView.bounds;
     return pageView;
 }
 
