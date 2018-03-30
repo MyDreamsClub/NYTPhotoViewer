@@ -107,11 +107,13 @@ static const CGFloat NYTPhotosViewControllerOverlayAnimationDuration = 0.2;
     self.view.backgroundColor = [UIColor blackColor];
     self.swipeView.backgroundColor = [UIColor clearColor];
     
+    NSUInteger currentItemIndex = self.swipeView.currentItemIndex;
     self.swipeView.frame = self.view.bounds;
     [self.swipeView addGestureRecognizer:self.panGestureRecognizer];
     [self.swipeView addGestureRecognizer:self.singleTapGestureRecognizer];
     [self.swipeView setNeedsLayout];
     [self.swipeView layoutIfNeeded];
+    self.swipeView.currentItemIndex = currentItemIndex;
     
     [self.view addSubview:self.swipeView];
     [self addOverlayView];
