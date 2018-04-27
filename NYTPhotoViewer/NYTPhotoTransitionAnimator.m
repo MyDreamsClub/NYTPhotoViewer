@@ -171,7 +171,7 @@ static const CGFloat NYTPhotoTransitionAnimatorSpringDamping = 0.9;
     CGRect translatedEndingViewFinalFrame = [containerView convertRect:self.endingView.frame
                                                               fromView:self.endingView.superview];
     if(!self.dismissing) {
-        translatedEndingViewFinalFrame.origin.x = 0.0;
+        translatedEndingViewFinalFrame.origin.x = MAX(([[ UIScreen mainScreen ] bounds ].size.width - translatedEndingViewFinalFrame.size.width) / 2.0, 0.0);
     }
     
     CGRect endingVisibleRect = self.isDismissing ? [self visibleRectOfView:self.endingView] : CGRectMake(0, 0, translatedEndingViewFinalFrame.size.width, translatedEndingViewFinalFrame.size.height);
